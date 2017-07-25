@@ -481,87 +481,87 @@ class SearchSys():
 
 class CompressTables():
     def choose_method():
-    prompt = "> "
-    ask_again = True
-    print """Enter '1', '2', or '3' to choose a method for calculation:
-          1. Compressibility Lookup
-          2. Temperature Interpolation
-          3. Pressure Interpolation"""
+        prompt = "> "
+        ask_again = True
+        print """Enter '1', '2', or '3' to choose a method for calculation:
+              1. Compressibility Lookup
+              2. Temperature Interpolation
+              3. Pressure Interpolation"""
 
-    method = raw_input(prompt)
+        method = raw_input(prompt)
 
-    cr_t, cr_p, acentric, temp, press, z = None, None, None, None, None, None
-    if "1" in method or "2" in method or "3" in method:
-        while ask_again:
-            try:
-                print "Enter the critical temperature: "
-                cr_t = float(raw_input(prompt))
-                print "Enter the critical pressure: "
-                cr_p = float(raw_input(prompt))
-                print "Enter the acentric factor: "
-                acentric = float(raw_input(prompt))
-                ask_again = False
-            except ValueError, e:
-                cr_t, cr_p, acentric = None, None, None
-                print "Provide numbers only for each field."
-
-        if "1" in method:
-            ask_again = True
+        cr_t, cr_p, acentric, temp, press, z = None, None, None, None, None, None
+        if "1" in method or "2" in method or "3" in method:
             while ask_again:
                 try:
-                    print "Enter the temperature: "
-                    temp = float(raw_input(prompt))
-                    print "Enter the pressure: "
-                    press = float(raw_input(prompt))
+                    print "Enter the critical temperature: "
+                    cr_t = float(raw_input(prompt))
+                    print "Enter the critical pressure: "
+                    cr_p = float(raw_input(prompt))
+                    print "Enter the acentric factor: "
+                    acentric = float(raw_input(prompt))
                     ask_again = False
                 except ValueError, e:
-                    temp, press = None, None
+                    cr_t, cr_p, acentric = None, None, None
                     print "Provide numbers only for each field."
 
-            print "Z: ", calculate_z(cr_t, cr_p, acentric, temp, press)
+            if "1" in method:
+                ask_again = True
+                while ask_again:
+                    try:
+                        print "Enter the temperature: "
+                        temp = float(raw_input(prompt))
+                        print "Enter the pressure: "
+                        press = float(raw_input(prompt))
+                        ask_again = False
+                    except ValueError, e:
+                        temp, press = None, None
+                        print "Provide numbers only for each field."
 
-        elif "2" in method:
-            ask_again = True
-            while ask_again:
-                try:
-                    print "Enter the pressure: "
-                    press = float(raw_input(prompt))
-                    print "Enter the target compressibility: "
-                    z = float(raw_input(prompt))
-                    ask_again = False
-                except ValueError, e:
-                    press, z = None, None
-                    print "Provide numbers only for each field."
+                print "Z: ", calculate_z(cr_t, cr_p, acentric, temp, press)
 
-            print "T: ", temp_inter(cr_t, cr_p, acentric, press, z)
+            elif "2" in method:
+                ask_again = True
+                while ask_again:
+                    try:
+                        print "Enter the pressure: "
+                        press = float(raw_input(prompt))
+                        print "Enter the target compressibility: "
+                        z = float(raw_input(prompt))
+                        ask_again = False
+                    except ValueError, e:
+                        press, z = None, None
+                        print "Provide numbers only for each field."
+
+                print "T: ", temp_inter(cr_t, cr_p, acentric, press, z)
+
+            else:
+                ask_again = True
+                while ask_again:
+                    try:
+                        print "Enter the temperature: "
+                        temp = float(raw_input(prompt))
+                        print "Enter the target compressibility: "
+                        z = float(raw_input(prompt))
+                        ask_again = False
+                    except ValueError, e:
+                        temp, z = None, None
+                        print "Provide numbers only for each field."
+
+                print "P: ", pressure_inter(cr_t, cr_p, acentric, temp, z)
 
         else:
-            ask_again = True
-            while ask_again:
-                try:
-                    print "Enter the temperature: "
-                    temp = float(raw_input(prompt))
-                    print "Enter the target compressibility: "
-                    z = float(raw_input(prompt))
-                    ask_again = False
-                except ValueError, e:
-                    temp, z = None, None
-                    print "Provide numbers only for each field."
+            if method == "quit()":
+                sys.exit()
+            else:
+                print "Please enter '1', '2', or '3.'"
 
-            print "P: ", pressure_inter(cr_t, cr_p, acentric, temp, z)
+        print "Enter 'a' to calculate again: "
+        response = raw_input(prompt)
 
-    else:
-        if method == "quit()":
+        if "a" in response:
+            choose_method()
+        else:
             sys.exit()
-        else:
-            print "Please enter '1', '2', or '3.'"
-
-    print "Enter 'a' to calculate again: "
-    response = raw_input(prompt)
-
-    if "a" in response:
-        choose_method()
-    else:
-        sys.exit()
 
     choose_method()
