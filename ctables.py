@@ -4,7 +4,7 @@ import sys
 import math
 
 class FileIO():
-    def open_all_files():
+    def open_all_files(self):
         z0_1 = open('Z0_1.csv')
         z0_2 = open('Z0_2.csv')
         z1_1 = open('Z1_1.csv')
@@ -18,7 +18,7 @@ class FileIO():
         return z0_1_lines, z0_2_lines, z1_1_lines, z1_2_lines
 
 
-    def sort_all(z0_1, z0_2, z1_1, z1_2):
+    def sort_all(self, z0_1, z0_2, z1_1, z1_2):
         pr_values = []
         tr_values = []
         values_z0 = []
@@ -78,43 +78,44 @@ class FileIO():
         return pr_values, tr_values, values_z0, values_z1
 
 
-class Calculations():
-    def calculate_z(cr_temp, cr_pressure, acentric, temp, pressure):
+class Calculation():
+    def calculate_z(self, cr_temp, cr_pressure, acentric, temp, pressure):
 
         tr = float(temp) / float(cr_temp)
         pr = float(pressure) / float(cr_pressure)
 
-        a, b, c, d = open_all_files()
-        e, f, g, h = sort_all(a, b, c, d)
+        a, b, c, d = FileIO().open_all_files()
+        e, f, g, h = FileIO().sort_all(a, b, c, d)
         #z0, z1 = find_value(pr, tr, e, f, g, h)
-        z0, z1 = find_value(pr, tr, e, f, g, h)
+        z0, z1 = SearchSys().find_value(pr, tr, e, f, g, h)
 
         z = z0 + acentric * z1
 
         return z0, z1, z
 
-    def temp_inter(cr_temp, cr_pressure, acentric, pressure, z):
-        a, b, c, d = open_all_files()
-        pr_val, tr_val, val_z0, val_z1 = sort_all(a, b, c, d)
+
+    def temp_inter(self, cr_temp, cr_pressure, acentric, pressure, z):
+        a, b, c, d = FileIO().open_all_files()
+        pr_val, tr_val, val_z0, val_z1 = FileIO().sort_all(a, b, c, d)
 
         acentric = float(acentric)
-        answer = interpolate(cr_pressure, pressure, cr_temp, None, z, acentric,
+        answer = SearchSys().interpolate(cr_pressure, pressure, cr_temp, None, z, acentric,
                              pr_val, tr_val, val_z0, val_z1)
         return answer
 
 
-    def pressure_inter(cr_temp, cr_pressure, acentric, temp, z):
-        a, b, c, d = open_all_files()
-        pr_val, tr_val, val_z0, val_z1 = sort_all(a, b, c, d)
+    def pressure_inter(self, cr_temp, cr_pressure, acentric, temp, z):
+        a, b, c, d = FileIO().open_all_files()
+        pr_val, tr_val, val_z0, val_z1 = FileIO().sort_all(a, b, c, d)
 
         acentric = float(acentric)
-        answer = interpolate(cr_pressure, None, cr_temp, temp, z, acentric,
+        answer = SearchSys().interpolate(cr_pressure, None, cr_temp, temp, z, acentric,
                              pr_val, tr_val, val_z0, val_z1)
         return answer
 
 
 class SearchSys():
-    def find_value(pr, tr, pr_val, tr_val, val_z0, val_z1):
+    def find_value(self, pr, tr, pr_val, tr_val, val_z0, val_z1):
         press = float(pr)
         temp = float(tr)
 
@@ -133,29 +134,29 @@ class SearchSys():
                 try:
                     tr_index = tr_val.index(temp)
                     # Pr is not in table, Tr is in table
-                    x0_pr, x1_pr = one_var_inter(pr_val, press)
+                    x0_pr, x1_pr = self.one_var_inter(pr_val, press)
                 except ValueError, e:
                     # Pr and Tr not in table
-                    return two_var_inter(press, temp, pr_val, tr_val, val_z0, val_z1)
+                    return self.two_var_inter(press, temp, pr_val, tr_val, val_z0, val_z1)
 
             try:
                 tr_index = tr_val.index(temp)
             except ValueError, e:
                 # Tr is not in table, Pr is in table
-                x0_tr, x1_tr = one_var_inter(tr_val, temp)
+                x0_tr, x1_tr = self.one_var_inter(tr_val, temp)
 
             if x0_pr != None and x0_tr == None: # interpolation of Pr value
                 val = press
                 x0, x1 = x0_pr, x1_pr
 
-                y0_z0, y0_z1 = find_value(x0_pr, temp, pr_val, tr_val, val_z0, val_z1)
-                y1_z0, y1_z1 = find_value(x1_pr, temp, pr_val, tr_val, val_z0, val_z1)
+                y0_z0, y0_z1 = self.find_value(x0_pr, temp, pr_val, tr_val, val_z0, val_z1)
+                y1_z0, y1_z1 = self.find_value(x1_pr, temp, pr_val, tr_val, val_z0, val_z1)
             elif x0_tr != None and x0_pr == None:
                 val = temp
                 x0, x1 = x0_tr, x1_tr
 
-                y0_z0, y0_z1 = find_value(press, x0_tr, pr_val, tr_val, val_z0, val_z1)
-                y1_z0, y1_z1 = find_value(press, x1_tr, pr_val, tr_val, val_z0, val_z1)
+                y0_z0, y0_z1 = self.find_value(press, x0_tr, pr_val, tr_val, val_z0, val_z1)
+                y1_z0, y1_z1 = self.find_value(press, x1_tr, pr_val, tr_val, val_z0, val_z1)
             else:
                 # Pr and Tr are in table
                 return (val_z0[tr_index][pr_index], val_z1[tr_index][pr_index])
@@ -166,7 +167,7 @@ class SearchSys():
             return z0, z1
 
 
-    def one_var_inter(list_val, val1):
+    def one_var_inter(self, list_val, val1):
         # list_val: pr_val or tr_val, val: press or temp
         for i in range (0, len(list_val) - 1):
             if list_val[i] <= val1:
@@ -183,7 +184,7 @@ class SearchSys():
                 return float('NaN'), float('NaN')
 
 
-    def two_var_inter(pr, tr, pr_val, tr_val, val_z0, val_z1):
+    def two_var_inter(self, pr, tr, pr_val, tr_val, val_z0, val_z1):
         for i in range (0, len(tr_val) - 1):
             if tr_val[i] <= tr:
                 if tr_val[i + 1] < tr and i == len(tr_val) - 2:
@@ -206,13 +207,13 @@ class SearchSys():
                     x0_pr = pr_val[i]
                     x1_pr = pr_val[i + 1]
 
-                    y0_z0_pr1, y0_z1_pr1 = find_value(x0_pr, x0_tr, pr_val, tr_val,
+                    y0_z0_pr1, y0_z1_pr1 = self.find_value(x0_pr, x0_tr, pr_val, tr_val,
                                                        val_z0, val_z1)
-                    y1_z0_pr1, y1_z1_pr1 = find_value(x1_pr, x0_tr, pr_val, tr_val,
+                    y1_z0_pr1, y1_z1_pr1 = self.find_value(x1_pr, x0_tr, pr_val, tr_val,
                                                        val_z0, val_z1)
-                    y0_z0_pr2, y0_z1_pr2 = find_value(x0_pr, x1_tr, pr_val, tr_val,
+                    y0_z0_pr2, y0_z1_pr2 = self.find_value(x0_pr, x1_tr, pr_val, tr_val,
                                                        val_z0, val_z1)
-                    y1_z0_pr2, y1_z1_pr2 = find_value(x1_pr, x1_tr, pr_val, tr_val,
+                    y1_z0_pr2, y1_z1_pr2 = self.find_value(x1_pr, x1_tr, pr_val, tr_val,
                                                        val_z0, val_z1)
                     break
             else:
@@ -234,7 +235,7 @@ class SearchSys():
         return float(z0_3), float(z1_3)
 
 
-    def interpolate(cr_p, press, cr_t, temp, z, acentric, pr_val, tr_val, val_z0, val_z1):
+    def interpolate(self, cr_p, press, cr_t, temp, z, acentric, pr_val, tr_val, val_z0, val_z1):
         index = None
         start = None
         end = None
@@ -333,11 +334,11 @@ class SearchSys():
                                 x = (x1 - x0) * (float(z) - y0) / (y1 - y0) + x0
 
                                 if press == None:
-                                    calc_z0, calc_z1, calc_z = calculate_z(cr_t, cr_p,
+                                    calc_z0, calc_z1, calc_z = Calculation().calculate_z(cr_t, cr_p,
                                                                            acentric,
                                                                            temp, x)
                                 else:
-                                    calc_z0, calc_z1, calc_z = calculate_z(cr_t, cr_p,
+                                    calc_z0, calc_z1, calc_z = Calculation().calculate_z(cr_t, cr_p,
                                                                            acentric,
                                                                            x, press)
 
@@ -370,9 +371,9 @@ class SearchSys():
             else:
                 for i in range(0, end):
                     if press == None:
-                        z0, z1 = find_value(pr_val[i], temp, pr_val, tr_val, val_z0, val_z1)
+                        z0, z1 = self.find_value(pr_val[i], temp, pr_val, tr_val, val_z0, val_z1)
                     else:
-                        z0, z1 = find_value(press, tr_val[i], pr_val, tr_val, val_z0, val_z1)
+                        z0, z1 = self.find_value(press, tr_val[i], pr_val, tr_val, val_z0, val_z1)
 
                     z_list.append(z0 + acentric * z1)
                     # print pr_val[i], z_list[len(z_list) - 1]
@@ -414,10 +415,10 @@ class SearchSys():
                             x = (x1 - x0) * (float(z) - y0) / (y1 - y0) + x0
                             #print "x: ", x
                             if press == None:
-                                calc_z0, calc_z1, calc_z = calculate_z(cr_t, cr_p,
+                                calc_z0, calc_z1, calc_z = Calculation().calculate_z(cr_t, cr_p,
                                                                    acentric, temp, x)
                             else:
-                                calc_z0, calc_z1, calc_z = calculate_z(cr_t, cr_p,
+                                calc_z0, calc_z1, calc_z = Calculation().calculate_z(cr_t, cr_p,
                                                                    acentric, x, press)
                             # z_list[z_list.index(smallest_diff[1])] = float('NaN')
                             #print "**", z, x, calc_z, abs(float(z) - calc_z)
@@ -442,10 +443,10 @@ class SearchSys():
                                     for i in range (0, len(answer)):
                                         if abs(answer[i] - x) < 0.1:
                                             if press == None:
-                                                a, b, c = calculate_z(cr_t, cr_p,
+                                                a, b, c = Calculation().calculate_z(cr_t, cr_p,
                                                                       acentric, temp, answer[i])
                                             else:
-                                                a, b, c = calculate_z(cr_t, cr_p,
+                                                a, b, c = Calculation().calculate_z(cr_t, cr_p,
                                                                      acentric, answer[i], press)
                                             #print abs(float(z) - calc_z), abs(float(z) - c)
                                             if abs(float(z) - calc_z) < abs(float(z) - c):
@@ -463,13 +464,13 @@ class SearchSys():
                                     z_list[z_list.index(smallest_diff[1])] = 0
                                 else:
                                     continue
-            return format_answer(answer)
+            return self.format_answer(answer)
 
         except RuntimeError, e:
             print press, temp
 
 
-    def format_answer(list):
+    def format_answer(self, list):
         new_answer = [x for x in list if math.isnan(x) == False]
         if len(new_answer) == 1:
             return new_answer[0]
@@ -480,7 +481,7 @@ class SearchSys():
 
 
 class CompressTables():
-    def choose_method():
+    def choose_method(self):
         prompt = "> "
         ask_again = True
         print """Enter '1', '2', or '3' to choose a method for calculation:
@@ -518,7 +519,7 @@ class CompressTables():
                         temp, press = None, None
                         print "Provide numbers only for each field."
 
-                print "Z: ", calculate_z(cr_t, cr_p, acentric, temp, press)
+                print "Z: ", Calculation().calculate_z(cr_t, cr_p, acentric, temp, press)
 
             elif "2" in method:
                 ask_again = True
@@ -533,7 +534,7 @@ class CompressTables():
                         press, z = None, None
                         print "Provide numbers only for each field."
 
-                print "T: ", temp_inter(cr_t, cr_p, acentric, press, z)
+                print "T: ", Calculation().temp_inter(cr_t, cr_p, acentric, press, z)
 
             else:
                 ask_again = True
@@ -548,7 +549,7 @@ class CompressTables():
                         temp, z = None, None
                         print "Provide numbers only for each field."
 
-                print "P: ", pressure_inter(cr_t, cr_p, acentric, temp, z)
+                print "P: ", Calculation().pressure_inter(cr_t, cr_p, acentric, temp, z)
 
         else:
             if method == "quit()":
@@ -560,8 +561,9 @@ class CompressTables():
         response = raw_input(prompt)
 
         if "a" in response:
-            choose_method()
+            self.choose_method()
         else:
             sys.exit()
 
-    choose_method()
+ctables = CompressTables()
+ctables.choose_method()
