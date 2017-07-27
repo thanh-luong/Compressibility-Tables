@@ -565,5 +565,6 @@ class CompressTables():
         else:
             sys.exit()
 
+
 ctables = CompressTables()
 ctables.choose_method()
